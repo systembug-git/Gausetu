@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GauSetu - Farm Fresh Milk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gau-green': '#2F4F4F', // Deep Forest Green
+                        'gau-gold': '#DAA520', // Warm Gold
+                        'gau-brown': '#8B4513', // Earthy Brown
+                        'gau-ivory': '#FFFFF0', // Soft Ivory
+                        'gau-light-green': '#E0F2E9', // Lighter Pastel Green
+                    },
+                    fontFamily: {
+                        'heading': ['Playfair Display', 'serif'],
+                        'body': ['Lato', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'body', sans-serif;
+            background-color: #FFFFF0; /* gau-ivory */
+            color: #2F4F4F; /* gau-green */
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'heading', serif;
+            color: #8B4513; /* gau-brown */
+        }
+        .hero-bg {
+            background-image: url('/GauSetu/BG.jpg');
+            background-size: cover;
+            background-attachment: fixed; /* Parallax effect */
+        }
+        .hero-overlay {
+            background: linear-gradient(to bottom, rgba(47, 79, 79, 0.3), rgba(0, 0, 0, 0.7));
+        }
+        .modal, .search-overlay {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+        }
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            background-color: white;
+            z-index: 100;
+            transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        }
+        .cart-sidebar.open {
+            right: 0;
+        }
+        .btn-primary {
+            @apply bg-gau-gold text-white px-6 py-2 rounded-full hover:bg-opacity-80 font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 transform;
+        }
+        .section-bg-pattern {
+             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232F4F4F' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* New 3D Hover Animation */
+        .card-hover {
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+        .card-hover:hover {
+            transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) scale(1.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        #searchIcon, #cartIcon {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #searchIcon:hover, #cartIcon:hover {
+            transform: scale(1.2) rotate(5deg);
+        }
+    </style>
+</head>
+<body class="bg-gau-ivory">
+
+    <!-- Header -->
+    <header class="bg-gau-ivory/80 backdrop-blur-sm shadow-md sticky top-0 z-40">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-gau-brown font-heading">GauSetu</a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="#" class="text-gau-green hover:text-gau-gold transition-colors duration-300">Home</a>
+                <a href="#categories" class="text-gau-green hover:text-gau-gold transition-colors duration-300">Categories</a>
+                <a href="#breeds" class="text-gau-green hover:text-gau-gold transition-colors duration-300">Breeds</a>
+                <a href="#products" class="text-gau-green hover:text-gau-gold transition-colors duration-300">Products</a>
+                <a href="https://landbot.online/v3/H-3031944-JI9CXDLQF16AB3XI/index.html" target="_blank" rel="noopener noreferrer" class="font-semibold text-gau-green hover:text-gau-gold">GauBot 🤖</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                 <button id="searchIcon" class="text-gau-green hover:text-gau-gold">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                 </button>
+                 <button id="cartIcon" class="relative text-gau-green hover:text-gau-gold">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span id="cart-badge" class="absolute -top-2 -right-2 bg-gau-brown text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                 </button>
+                 <button id="signInBtn" class="btn-primary">Sign In</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Cart Sidebar -->
+    <div id="cartSidebar" class="cart-sidebar flex flex-col">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h2 class="text-2xl font-heading text-gau-brown">Your Cart</h2>
+            <button id="closeCart" class="text-gray-600 text-2xl">&times;</button>
+        </div>
+        <div id="cart-items" class="flex-grow p-4 overflow-y-auto">
+             <p class="text-gray-500 text-center">Your cart is empty.</p>
+        </div>
+        <div class="p-4 border-t bg-gray-50">
+            <div class="flex justify-between font-bold text-lg mb-4">
+                <span>Subtotal</span>
+                <span id="cart-subtotal">₹0.00</span>
+            </div>
+            <button id="checkoutBtn" class="w-full bg-gau-gold text-white py-3 rounded-lg font-bold hover:bg-opacity-80 disabled:bg-gray-400 disabled:text-gray-600 disabled:hover:bg-opacity-100" disabled>Buy Now (Checkout)</button>
+        </div>
+    </div>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="search-overlay"><div class="container mx-auto px-6 py-8"><div class="flex justify-between items-center mb-8"><h2 class="text-4xl font-heading text-gau-brown">Search for Products</h2><button id="closeSearch" class="text-gray-800 text-4xl">&times;</button></div><input type="text" id="searchInput" placeholder="Search for Milk, Ghee, Lassi..." class="w-full p-4 border-2 border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-gau-gold"><div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-8"></div></div></div>
+
+    <!-- Main Content -->
+    <main>
+        <section class="hero-bg text-white"><div class="hero-overlay"><div class="container mx-auto px-6 py-32 text-center"><h1 class="text-5xl md:text-7xl font-bold mb-4 reveal">From Happy Cows To Happy Homes!</h1><p class="text-lg md:text-xl mb-8 reveal" style="transition-delay: 200ms;">Fresh, Pure, and Hygienic Dairy, delivered right to your doorstep.</p><a href="#breeds" class="btn-primary px-8 py-3 reveal" style="transition-delay: 400ms;">Choose Your Breed</a></div></div></section>
+        <section class="py-20"><div class="container mx-auto px-6 text-center reveal"><h2 class="text-4xl font-bold text-gau-brown mb-4">Welcome to GauSetu</h2><p class="text-gau-green max-w-2xl mx-auto text-lg">Your trusted online destination for the freshest dairy products. We are committed to making your dairy shopping experience quick, effortless, and delightful.</p></div></section>
+        <section id="categories" class="py-20 bg-gau-light-green section-bg-pattern"><div class="container mx-auto px-6 reveal"><h2 class="text-4xl font-bold text-center text-gau-brown mb-12">Explore Our Range</h2><div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 text-center"><a href="#products" class="category-card block bg-white/50 backdrop-blur-sm p-4 rounded-lg card-hover"><img src="https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop" alt="Cow Milk" class="mx-auto mb-4 rounded-full h-32 w-32 object-cover"><h3 class="font-semibold text-lg text-gau-brown">Cow Milk</h3></a><a href="#products" class="category-card block bg-white/50 backdrop-blur-sm p-4 rounded-lg card-hover"><img src="https://images.unsplash.com/photo-1589938837049-5278a1813493?q=80&w=1974&auto=format&fit=crop" alt="Ghee" class="mx-auto mb-4 rounded-full h-32 w-32 object-cover"><h3 class="font-semibold text-lg text-gau-brown">Ghee</h3></a><a href="#products" class="category-card block bg-white/50 backdrop-blur-sm p-4 rounded-lg card-hover"><img src="https://images.unsplash.com/photo-1580955542548-a203a016b8df?q=80&w=1974&auto=format&fit=crop" alt="Paneer" class="mx-auto mb-4 rounded-full h-32 w-32 object-cover"><h3 class="font-semibold text-lg text-gau-brown">Paneer</h3></a><a href="#products" class="category-card block bg-white/50 backdrop-blur-sm p-4 rounded-lg card-hover"><img src="https://images.unsplash.com/photo-1605214228997-6a4a518e0a99?q=80&w=1974&auto=format&fit=crop" alt="Yogurt" class="mx-auto mb-4 rounded-full h-32 w-32 object-cover"><h3 class="font-semibold text-lg text-gau-brown">Yogurt</h3></a><a href="#products" class="category-card block bg-white/50 backdrop-blur-sm p-4 rounded-lg card-hover"><img src="https://images.unsplash.com/photo-1562221434-1a61320455d9?q=80&w=1964&auto=format&fit=crop" alt="Butter" class="mx-auto mb-4 rounded-full h-32 w-32 object-cover"><h3 class="font-semibold text-lg text-gau-brown">Butter</h3></a><a href="#products" class="category-card block bg-white/50 backdrop-blur-sm p-4 rounded-lg card-hover"><img src="https://images.unsplash.com/photo-1559841374-24a913416795?q=80&w=1974&auto=format&fit=crop" alt="Lassi" class="mx-auto mb-4 rounded-full h-32 w-32 object-cover"><h3 class="font-semibold text-lg text-gau-brown">Lassi</h3></a></div></div></section>
+        <section id="breeds" class="py-20 bg-gau-ivory"><div class="container mx-auto px-6 reveal"><h2 class="text-4xl font-bold text-center text-gau-brown mb-12">Browse By Breed</h2><div id="breed-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-8"></div></div></section>
+        <section id="products" class="py-20 bg-gau-light-green section-bg-pattern"><div class="container mx-auto px-6 reveal"><div class="flex justify-center items-center mb-12 relative"><h2 id="product-title" class="text-4xl font-bold text-center text-gau-brown">Our Products</h2><button id="clearFilterBtn" class="ml-4 bg-white text-gray-700 px-4 py-1 rounded-full text-sm hidden hover:bg-gray-200 shadow">Clear Filter &times;</button></div><div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div></div></section>
+        <section id="why-us" class="py-20 bg-gau-ivory"><div class="container mx-auto px-6 reveal"><h2 class="text-4xl font-bold text-center text-gau-brown mb-12">Why Choose GauSetu?</h2><div class="grid md:grid-cols-3 gap-8 text-center"><div class="p-8 bg-white/50 backdrop-blur-sm rounded-lg shadow-lg card-hover"><div class="text-6xl mb-4">🐄</div><h3 class="text-2xl font-heading text-gau-brown mb-2">Farm Fresh</h3><p class="text-gau-green">Delivered within 24 hours of milking, ensuring you get the freshest product possible.</p></div><div class="p-8 bg-white/50 backdrop-blur-sm rounded-lg shadow-lg card-hover"><div class="text-6xl mb-4">🥛</div><h3 class="text-2xl font-heading text-gau-brown mb-2">Pure & Unadulterated</h3><p class="text-gau-green">Whole milk with no added powder or preservatives. Just pure, natural goodness.</p></div><div class="p-8 bg-white/50 backdrop-blur-sm rounded-lg shadow-lg card-hover"><div class="text-6xl mb-4">❤️</div><h3 class="text-2xl font-heading text-gau-brown mb-2">Ethically Sourced</h3><p class="text-gau-green">Our cows are raised in happy, healthy environments, because we believe happy cows give the best milk.</p></div></div></div></section>
+        <section id="testimonials" class="py-20 bg-gau-light-green section-bg-pattern"><div class="container mx-auto px-6 reveal"><h2 class="text-4xl font-bold text-center text-gau-brown mb-12">What Our Customers Say</h2><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="bg-white p-6 rounded-lg shadow-lg card-hover"><p class="text-gau-green mb-4">"The milk from GauSetu is incredibly fresh and creamy. My kids love it! The best part is knowing it's pure and healthy."</p><p class="font-semibold text-gau-brown">- The Sharma Family</p></div><div class="bg-white p-6 rounded-lg shadow-lg card-hover"><p class="text-gau-green mb-4">"I've tried milk from various brands, but GauSetu stands out. The quality is consistently excellent, and the delivery is always on time."</p><p class="font-semibold text-gau-brown">- Priya K.</p></div><div class="bg-white p-6 rounded-lg shadow-lg card-hover"><p class="text-gau-green mb-4">"As a fitness enthusiast, I'm very particular about what I consume. GauSetu's milk products are a staple in my diet. Highly recommended!"</p><p class="font-semibold text-gau-brown">- Rahul Verma</p></div></div></div></section>
+    </main>
+    <!-- Footer -->
+    <footer class="bg-gau-green text-white py-12"><div class="container mx-auto px-6 text-center"><p class="font-heading text-2xl">&copy; 2025 GauSetu</p><p class="text-sm text-yellow-100 mt-2">Delivering Freshness, One Home at a Time.</p></div></footer>
+
+    <!-- Modals -->
+    <div id="authModal" class="modal"><div class="flex items-center justify-center min-h-screen"><div class="auth-modal-content bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative border border-gray-200"><button class="close-auth-modal absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button><div id="signInView"><div class="text-center"><h2 class="text-2xl font-bold text-gau-brown mb-2">GauSetu</h2><h3 class="text-2xl text-gray-800">Sign in</h3><p class="text-gray-600 mt-1">to continue to GauSetu</p></div><form id="signInForm" class="mt-8"><div class="mb-4"><input type="email" placeholder="Email or phone" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gau-gold"></div><div class="text-right text-sm mb-6"><a href="#" class="font-semibold text-gau-green hover:underline">Forgot email?</a></div><div class="flex justify-between items-center"><button type="button" id="switchToSignUp" class="font-semibold text-gau-green hover:underline">Create account</button><button type="submit" class="btn-primary">Next</button></div></form></div><div id="signUpView" class="hidden"><div class="text-center"><h2 class="text-xl font-semibold mb-4">Sign up</h2><p class="text-gray-600">Sign up to continue</p></div><form id="signUpForm" class="mt-6"><div class="mb-4"><input type="text" id="name-up" placeholder="Name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gau-gold"></div><div class="mb-4"><input type="email" id="email-up" placeholder="Email" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gau-gold"></div><div class="mb-6"><input type="password" id="password-up" placeholder="Password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gau-gold"></div><button type="submit" class="w-full bg-gau-gold text-white py-2 rounded-md hover:bg-opacity-80 font-semibold mb-4">Sign up</button><div class="text-center"><p class="text-sm text-gray-500">Already have an account? <button type="button" id="switchToSignIn" class="font-semibold text-gau-green hover:underline">Sign in</button></p></div></form></div></div></div></div>
+    <div id="checkoutModal" class="modal"><div class="flex items-center justify-center min-h-screen"><div class="checkout-modal-content bg-white p-8 rounded-lg shadow-2xl w-full max-w-2xl relative"><button id="closeCheckoutModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button><h2 class="text-3xl font-bold text-center mb-6">Checkout</h2><div class="progress-bar"><div class="progress-step active" id="step-address"><div class="step-circle"></div><div class="step-name">Shipping Address</div><div class="progress-line"></div></div><div class="progress-step" id="step-payment"><div class="step-circle"></div><div class="step-name">Payment Method</div></div></div><div id="address-section"><form id="addressForm"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input required type="text" placeholder="Full Name" class="p-2 border rounded"><input required type="email" placeholder="Email Address" class="p-2 border rounded"><input required type="tel" placeholder="Phone Number" class="p-2 border rounded"><input required type="text" placeholder="Zip Code" class="p-2 border rounded"></div><textarea required placeholder="Full Address" class="w-full mt-4 p-2 border rounded" rows="3"></textarea><button type="submit" class="w-full mt-6 bg-gau-gold text-white py-3 rounded-lg font-bold hover:bg-opacity-80">Proceed to Payment</button></form></div><div id="payment-section" class="hidden"><h3 class="text-xl font-semibold mb-4">Select Payment Method</h3><div class="space-y-4"><label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"><input type="radio" name="payment" class="mr-4"><span>UPI (GPay, PhonePe, etc.)</span></label><label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"><input type="radio" name="payment" class="mr-4"><span>Credit / Debit Card</span></label><label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"><input type="radio" name="payment" class="mr-4"><span>Net Banking</span></label><label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"><input type="radio" name="payment" class="mr-4"><span>Cash on Delivery</span></label></div><div class="flex justify-between mt-6"><button id="backToAddress" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 font-semibold">Back</button><button id="confirmOrderBtn" class="bg-gau-gold text-white px-6 py-2 rounded-md hover:bg-opacity-80 font-semibold">Confirm Order</button></div></div></div></div></div>
+    <div id="orderSuccessModal" class="modal"><div class="flex items-center justify-center min-h-screen"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-center"><div class="text-6xl mb-4">✅</div><h2 class="text-3xl font-bold text-gau-gold mb-4">Thank You!</h2><p class="text-lg text-gray-700">Your order has been placed successfully.</p><button id="closeSuccessModal" class="mt-6 w-full bg-gau-gold text-white py-2 rounded-md hover:bg-opacity-80 font-semibold">Continue Shopping</button></div></div></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- SCROLL ANIMATION ---
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => observer.observe(el));
+
+            // --- DATA ---
+            const productsByBreed = {
+                'Gir': [ { id: 1, name: 'Gir Cow Milk', basePrice: 90, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'GauSetu/Gir.jpeg' }, { id: 2, name: 'Gir Cow Ghee', basePrice: 899, sizes: [0.25, 0.5, 1], unit: 'kg', img: 'httpGauSetu/Gir.jpegs://images.unsplash.com/photo-1589938837049-5278a1813493?q=80&w=1974&auto=format&fit=crop' }, { id: 3, name: 'Gir Cow Paneer', basePrice: 399, sizes: [0.2, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1580955542548-a203a016b8df?q=80&w=1974&auto=format&fit=crop' }, { id: 4, name: 'Gir Cow Yogurt', basePrice: 299, sizes: [0.2, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1605214228997-6a4a518e0a99?q=80&w=1974&auto=format&fit=crop' }, { id: 5, name: 'Sweet Lassi', basePrice: 40, sizes: [0.2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1559841374-24a913416795?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Sahiwal': [ { id: 6, name: 'Sahiwal Cow Milk', basePrice: 85, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, { id: 7, name: 'Sahiwal Cow Ghee', basePrice: 850, sizes: [0.25, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1589938837049-5278a1813493?q=80&w=1974&auto=format&fit=crop' }, { id: 8, name: 'Sahiwal Cow Butter', basePrice: 620, sizes: [0.1, 0.25, 0.5], unit: 'kg', img: 'https://images.unsplash.com/photo-1562221434-1a61320455d9?q=80&w=1964&auto=format&fit=crop' }, { id: 9, name: 'Mango Lassi', basePrice: 50, sizes: [0.2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1559841374-24a913416795?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Red Sindhi': [ { id: 10, name: 'Red Sindhi Cow Milk', basePrice: 88, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, { id: 11, name: 'Red Sindhi Cow Butter', basePrice: 599, sizes: [0.1, 0.25, 0.5], unit: 'kg', img: 'https://images.unsplash.com/photo-1562221434-1a61320455d9?q=80&w=1964&auto=format&fit=crop' }, { id: 12, name: 'Red Sindhi Cow Ghee', basePrice: 880, sizes: [0.25, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1589938837049-5278a1813493?q=80&w=1974&auto=format&fit=crop' }, { id: 13, name: 'Rose Lassi', basePrice: 50, sizes: [0.2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1559841374-24a913416795?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Rathi': [ { id: 14, name: 'Rathi Cow Milk', basePrice: 82, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, { id: 15, name: 'Rathi Cow Paneer', basePrice: 380, sizes: [0.2, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1580955542548-a203a016b8df?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Ongole': [ { id: 16, name: 'Ongole Cow Milk', basePrice: 95, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, { id: 17, name: 'Ongole Cow Ghee', basePrice: 950, sizes: [0.25, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1589938837049-5278a1813493?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Tharparkar': [ { id: 18, name: 'Tharparkar Cow Milk', basePrice: 80, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, { id: 19, name: 'Tharparkar Cow Yogurt', basePrice: 280, sizes: [0.2, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1605214228997-6a4a518e0a99?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Kankrej': [ { id: 20, name: 'Kankrej Cow Milk', basePrice: 87, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, { id: 21, name: 'Kankrej Cow Paneer', basePrice: 420, sizes: [0.2, 0.5, 1], unit: 'kg', img: 'https://images.unsplash.com/photo-1580955542548-a203a016b8df?q=80&w=1974&auto=format&fit=crop' }, ],
+                'Hariana': [ { id: 22, name: 'Hariana Cow Milk', basePrice: 78, sizes: [0.5, 1, 1.5, 2], unit: 'Litre', img: 'https://images.unsplash.com/photo-1620189507195-68309c04c4d5?q=80&w=1964&auto=format&fit=crop' }, ],
+            };
+            const breeds = Object.keys(productsByBreed).map(name => ({name, img: `https://images.unsplash.com/photo-1598353342573-3a527a5d1f7c?q=80&w=2070&auto=format&fit=crop`}));
+            const allProducts = Object.values(productsByBreed).flat().map(p => ({...p, breed: Object.keys(productsByBreed).find(key => productsByBreed[key].includes(p))}));
+            let cart = [];
+
+            // --- DOM ELEMENTS ---
+            const breedContainer = document.getElementById('breed-grid');
+            const productGrid = document.getElementById('product-grid');
+            const productTitle = document.getElementById('product-title');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const searchOverlay = document.getElementById('searchOverlay');
+            const searchIcon = document.getElementById('searchIcon');
+            const closeSearch = document.getElementById('closeSearch');
+            const searchInput = document.getElementById('searchInput');
+            const searchResultsContainer = document.getElementById('searchResults');
+            const cartSidebar = document.getElementById('cartSidebar');
+            const cartIcon = document.getElementById('cartIcon');
+            const closeCart = document.getElementById('closeCart');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartBadge = document.getElementById('cart-badge');
+            const cartSubtotalEl = document.getElementById('cart-subtotal');
+            const cartCheckoutBtn = document.getElementById('checkoutBtn');
+            const authModal = document.getElementById('authModal');
+            const checkoutModal = document.getElementById('checkoutModal');
+            const orderSuccessModal = document.getElementById('orderSuccessModal');
+
+            // --- FUNCTIONS ---
+            function displayProducts(productsToDisplay, container) {
+                container.innerHTML = '';
+                if (productsToDisplay.length === 0) { container.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found.</p>'; return; }
+                productsToDisplay.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-lg shadow-lg overflow-hidden flex flex-col card-hover';
+                    const sizeOptions = product.sizes.map(size => `<option value="${size}">${size} ${product.unit}</option>`).join('');
+                    card.innerHTML = `<div class="image-container"><img src="${product.img}" alt="${product.name}" class="w-full h-48 object-cover"></div><div class="p-4 flex-grow flex flex-col"><h3 class="font-bold text-xl text-gau-brown">${product.name}</h3><p class="text-sm text-gray-500 mb-2">From ${product.breed} Breed</p><div class="mt-auto"><div class="flex items-center justify-between my-3"><span class="font-bold text-lg text-gau-green product-dynamic-price" data-base-price="${product.basePrice}">₹${(product.basePrice * product.sizes[0]).toFixed(2)}</span><select class="product-size-selector border border-gray-300 rounded-md p-1" data-product-id="${product.id}">${sizeOptions}</select></div><button class="add-to-cart-btn w-full bg-gau-gold text-white py-2 rounded-md hover:bg-opacity-80 transition duration-300 font-semibold" data-product-id="${product.id}">Add to Cart</button></div></div>`;
+                    container.appendChild(card);
+                });
+            }
+            
+            function updateCart() {
+                if (cart.length === 0) { cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center">Your cart is empty.</p>'; } 
+                else {
+                    cartItemsContainer.innerHTML = cart.map(item => `<div class="flex items-center justify-between mb-4" data-cart-item-id="${item.id}-${item.size}"><div class="flex items-center"><img src="${item.img}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md mr-4"><div><h4 class="font-semibold">${item.name}</h4><p class="text-sm text-gray-500">${item.size} ${item.unit}</p><p class="font-bold text-gau-brown">₹${(item.price * item.quantity).toFixed(2)}</p></div></div><div class="flex items-center"><button class="cart-quantity-btn p-1" data-action="decrease">-</button><span class="mx-2">${item.quantity}</span><button class="cart-quantity-btn p-1" data-action="increase">+</button><button class="cart-remove-btn ml-4 text-red-500 hover:text-red-700">🗑️</button></div></div>`).join('');
+                }
+                const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+                cartSubtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+                cartBadge.textContent = totalItems;
+                cartBadge.classList.toggle('hidden', totalItems === 0);
+                cartCheckoutBtn.disabled = cart.length === 0;
+            }
+
+            function handleAddToCart(productId) {
+                const product = allProducts.find(p => p.id === productId);
+                const sizeSelector = document.querySelector(`.product-size-selector[data-product-id="${productId}"]`);
+                const selectedSize = parseFloat(sizeSelector.value);
+                const cartItemId = `${product.id}-${selectedSize}`;
+                const existingItem = cart.find(item => item.cartItemId === cartItemId);
+                if (existingItem) { existingItem.quantity++; } 
+                else { cart.push({ ...product, cartItemId: cartItemId, size: selectedSize, price: product.basePrice * selectedSize, quantity: 1 }); }
+                updateCart();
+            }
+            
+            function handleCartAction(e) {
+                if (!e.target.closest('[data-cart-item-id]')) return;
+                const cartItemEl = e.target.closest('[data-cart-item-id]');
+                const cartItemId = cartItemEl.dataset.cartItemId;
+                const item = cart.find(i => i.cartItemId === cartItemId);
+                if (e.target.matches('.cart-quantity-btn')) {
+                    const action = e.target.dataset.action;
+                    if (action === 'increase') { item.quantity++; } 
+                    else if (action === 'decrease') {
+                        item.quantity--;
+                        if (item.quantity === 0) { cart = cart.filter(i => i.cartItemId !== cartItemId); }
+                    }
+                } else if (e.target.matches('.cart-remove-btn')) {
+                    cart = cart.filter(i => i.cartItemId !== cartItemId);
+                }
+                updateCart();
+            }
+
+            // --- INITIALIZATION & EVENT LISTENERS ---
+            displayProducts(allProducts, productGrid);
+            breeds.forEach(breed => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer card-hover'; card.dataset.breed = breed.name;
+                card.innerHTML = `<div class="image-container"><img src="${breed.img}" alt="${breed.name}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e2e8f0/333?text=Image+Not+Found';"></div><div class="p-4"><h3 class="font-bold text-lg text-gau-brown">${breed.name}</h3><p class="text-gray-600 text-sm">${productsByBreed[breed.name].length} Products</p></div>`;
+                card.addEventListener('click', () => { 
+                    const filtered = allProducts.filter(p => p.breed === breed.name); 
+                    displayProducts(filtered, productGrid); 
+                    productTitle.textContent = `Products from ${breed.name} Breed`; 
+                    clearFilterBtn.classList.remove('hidden');
+                    document.getElementById('products').scrollIntoView({ behavior: 'smooth' }); 
+                });
+                breedContainer.appendChild(card);
+            });
+
+            clearFilterBtn.addEventListener('click', () => {
+                displayProducts(allProducts, productGrid);
+                productTitle.textContent = 'Our Products';
+                clearFilterBtn.classList.add('hidden');
+            });
+
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('product-size-selector')) {
+                    const selector = e.target;
+                    const newSize = parseFloat(selector.value);
+                    const card = selector.closest('.card-hover');
+                    const priceEl = card.querySelector('.product-dynamic-price');
+                    const basePrice = parseFloat(priceEl.dataset.basePrice);
+                    priceEl.textContent = `₹${(basePrice * newSize).toFixed(2)}`;
+                }
+            });
+
+            document.addEventListener('click', function(e) { if (e.target.classList.contains('add-to-cart-btn')) { const productId = parseInt(e.target.dataset.productId); handleAddToCart(productId); } });
+            cartItemsContainer.addEventListener('click', handleCartAction);
+            cartIcon.addEventListener('click', () => cartSidebar.classList.add('open'));
+            closeCart.addEventListener('click', () => cartSidebar.classList.remove('open'));
+            searchIcon.addEventListener('click', () => { searchOverlay.style.display = 'block'; document.body.style.overflow = 'hidden'; });
+            closeSearch.addEventListener('click', () => { searchOverlay.style.display = 'none'; document.body.style.overflow = 'auto'; });
+            searchInput.addEventListener('input', (e) => { const query = e.target.value.toLowerCase(); if (query.length > 0) { const filteredProducts = allProducts.filter(p => p.name.toLowerCase().includes(query)); displayProducts(filteredProducts, searchResultsContainer); } else { searchResultsContainer.innerHTML = ''; } });
+
+            // Auth Modal Logic
+            const signInBtn = document.getElementById('signInBtn');
+            const closeAuthModalBtn = authModal.querySelector('.close-auth-modal');
+            const signInView = document.getElementById('signInView');
+            const signUpView = document.getElementById('signUpView');
+            const switchToSignUpBtn = document.getElementById('switchToSignUp');
+            const switchToSignInBtn = document.getElementById('switchToSignIn');
+            signInBtn.onclick = () => authModal.style.display = 'block';
+            closeAuthModalBtn.onclick = () => authModal.style.display = 'none';
+            switchToSignUpBtn.onclick = () => { signInView.classList.add('hidden'); signUpView.classList.remove('hidden'); };
+            switchToSignInBtn.onclick = () => { signUpView.classList.add('hidden'); signInView.classList.remove('hidden'); };
+            
+            // Checkout Modal Logic
+            const closeCheckoutModalBtn = document.getElementById('closeCheckoutModal');
+            const addressSection = document.getElementById('address-section');
+            const paymentSection = document.getElementById('payment-section');
+            const addressForm = document.getElementById('addressForm');
+            const backToAddressBtn = document.getElementById('backToAddress');
+            const confirmOrderBtn = document.getElementById('confirmOrderBtn');
+            const stepAddress = document.getElementById('step-address');
+            const stepPayment = document.getElementById('step-payment');
+
+            cartCheckoutBtn.onclick = () => {
+                cartSidebar.classList.remove('open');
+                checkoutModal.style.display = 'block';
+            };
+            closeCheckoutModalBtn.onclick = () => checkoutModal.style.display = 'none';
+            addressForm.onsubmit = (e) => {
+                e.preventDefault();
+                addressSection.classList.add('hidden');
+                paymentSection.classList.remove('hidden');
+                stepAddress.classList.remove('active');
+                stepPayment.classList.add('active');
+            };
+            backToAddressBtn.onclick = () => {
+                paymentSection.classList.add('hidden');
+                addressSection.classList.remove('hidden');
+                stepPayment.classList.remove('active');
+                stepAddress.classList.add('active');
+            };
+            confirmOrderBtn.onclick = () => {
+                checkoutModal.style.display = 'none';
+                orderSuccessModal.style.display = 'block';
+                cart = [];
+                updateCart();
+            };
+            document.getElementById('closeSuccessModal').onclick = () => orderSuccessModal.style.display = 'none';
+
+            window.onclick = (event) => {
+                if (event.target == authModal || event.target == checkoutModal || event.target == orderSuccessModal) {
+                    event.target.style.display = 'none';
+                }
+            };
+        });
+    </script>
+</body>
+</html>
